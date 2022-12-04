@@ -1,9 +1,9 @@
 const Header = () => {
   return (
-    <div className="px-5 flex justify-between items-center">
+    <div className="px-5 flex justify-between items-center my-4">
       <div className="flex items-center space-x-5">
         <img
-          src="https://seekvectorlogo.com/wp-content/uploads/2021/12/medium-vector-logo-2021.png"
+          src="https://seeklogo.com/images/M/medium-logo-33836F45D2-seeklogo.com.png"
           alt=""
           className="w-44 object-contain"
         />

@@ -16,4 +16,13 @@ export interface Post{
         current:string;
     }
     body:[object];
+    comment:[Comment];
+}
+
+export interface Comment{
+    _id:string,
+    _createdAt:string,
+    comment:string,
+    email:string,
+    name:string,
 }

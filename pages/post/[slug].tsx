@@ -1,14 +1,38 @@
 import { GetStaticProps } from "next";
+import { useState } from "react";
 import PortableText from "react-portable-text";
 import Header from "../../components/Header/Header";
 import { sanityClient, urlFor } from "../../sanity";
-import { Post } from "../../typings";
+import { Comment, Post } from "../../typings";
 
 interface Props {
   post: Post;
 }
+
 const post = ({ post }: Props) => {
-  console.log(post);
+  const [submitted, setSubmitted] = useState(false);
+  const handleCommentFormSubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const target = e.target as typeof e.target & {
+      email: { value: string };
+      name: { value: string };
+      comment: { value: string };
+      _id: { value: string };
+    };
+    await fetch("/api/createComment", {
+      method: "POST",
+      body: JSON.stringify({
+        email: target.email.value,
+        name: target.name.value,
+        comment: target.comment.value,
+        _id: target._id.value,
+      }),
+    })
+      .then(() => {
+        setSubmitted(true);
+      })
+      .catch((err) => console.log(err));
+  };
   return (
     <main>
       <Header></Header>
@@ -57,25 +81,71 @@ const post = ({ post }: Props) => {
             }}
           />
         </div>
-        <hr className="max-w-lg mx-auto border-t-yellow-300 my-5"/>
-        <h2 className="text-md font-semibold text-yellow-300">Enjoyed this article?</h2>
+        <hr className="max-w-lg mx-auto border-t-yellow-300 my-5" />
+        <h2 className="text-md font-semibold text-yellow-300">
+          Enjoyed this article?
+        </h2>
         <h1 className="text-2xl font-bold">Leave a comment below!</h1>
-        <form className="mt-10">
-            <label htmlFor="name" className="flex flex-col">
-                Name
-                <input type="text" id="name" placeholder="Enter your name" className="border rounded-lg py-2 px-3 outline-none focus:border-yellow-300 mt-1" />
+        {!submitted ? (
+          <form className="mt-10" onSubmit={handleCommentFormSubmit}>
+            <input type="hidden" name="_id" value={post._id} />
+            <label htmlFor="name-field" className="flex flex-col">
+              Name
+              <input
+                type="text"
+                id="name-field"
+                name="name"
+                placeholder="Enter your name"
+                className="border rounded-lg py-2 px-3 outline-none focus:border-yellow-300 mt-1"
+                required
+              />
             </label>
-            <label htmlFor="email" className="flex flex-col mt-3">
-                Email
-                <input type="email" id="email" placeholder="your@email.com" className="border rounded-lg py-2 px-3 outline-none focus:border-yellow-300 mt-1" />
+            <label htmlFor="email-field" className="flex flex-col mt-3">
+              Email
+              <input
+                type="email"
+                id="email-field"
+                name="email"
+                placeholder="your@email.com"
+                className="border rounded-lg py-2 px-3 outline-none focus:border-yellow-300 mt-1"
+                required
+              />
             </label>
-            <label htmlFor="comment" className="flex flex-col mt-3">
-                Comment
-                <textarea id="comment" placeholder="Enter some long form content." className="border rounded-lg py-2 px-3 outline-none focus:border-yellow-300 mt-1" rows={8}>
-                </textarea>
+            <label htmlFor="comment-field" className="flex flex-col mt-3">
+              Comment
+              <textarea
+                id="comment-field"
+                name="comment"
+                placeholder="Enter some long form content."
+                className="border rounded-lg py-2 px-3 outline-none focus:border-yellow-300 mt-1"
+                rows={8}
+                required
+              ></textarea>
             </label>
-            <button className="bg-yellow-300 text-white px-3 py-2 text-center w-full mt-10 rounded-md">Submit</button>
-        </form>
+            <button
+              type="submit"
+              className="bg-yellow-300 text-white px-3 py-2 text-center w-full mt-10 rounded-md"
+            >
+              Submit
+            </button>
+          </form>
+        ) : (
+          <div className="mt-10 bg-yellow-300 p-5 text-white text-center">
+            <h2 className="text-2xl font-bold">
+              Thanks for submitting your comment
+            </h2>
+            Once it's been approved, it'll appear below.
+          </div>
+        )}
+
+        {post.comment.length && <section className="shadow py-8 px-5 mt-10 border-t">
+          <h2 className="text-2xl font-bold pb-2 border-b mb-4">Comments</h2>
+          {post.comment.map((comment: Comment)=>(
+            <p>
+              <span className="text-yellow-300">{comment.name}</span> {comment.comment}
+            </p>
+          ))}
+        </section>}
       </article>
     </main>
   );
@@ -101,19 +171,25 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const query = `*[_type=='post' && slug.current==$slug][0]{
-        _id,
-        _createdAt,
-        title,
-        author->{
-        name,image
-      },
-      body,
-      description,
-      mainImage,
-      slug
-      }
-    `;
+  const query = `*[_type=='post' && slug.current=='first-post'][0]{
+    _id,
+    _createdAt,
+    title,
+    author->{
+    name,image
+  },
+  'comment':*[_type=='comment' && post._ref==^._id && approved]{
+    _id,
+    _createdAt,
+    comment,
+    email,
+    name
+  },
+  body,
+  description,
+  mainImage,
+  slug
+  }`;
   const post = await sanityClient.fetch(query, {
     slug: params?.slug,
   });
