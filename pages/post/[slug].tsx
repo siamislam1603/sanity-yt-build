@@ -65,13 +65,22 @@ const post = ({ post }: Props) => {
             dataset={process.env.NEXT_PUBLIC_SANITY_DATASET}
             serializers={{
               h1: (props: any) => (
-                <h1 className="text-2xl font-bold my-5" {...props} />
+                <h1 className="text-3xl font-bold my-5" {...props} />
               ),
               h2: (props: any) => (
-                <h2 className="text-xl font-bold my-5" {...props} />
+                <h2 className="text-2xl font-bold my-5" {...props} />
+              ),
+              h3: (props: any) => (
+                <h3 className="text-xl font-bold my-5" {...props} />
+              ),
+              h4: (props: any) => (
+                <h4 className="text-lg font-bold my-5" {...props} />
+              ),
+              blockquote: (props: any) => (
+                <blockquote className="ml-4 border-l-4 border-[#CED2D9] pl-4" {...props} />
               ),
               li: ({ children }: any) => (
-                <li className="ml-4 list-disc">{children}</li>
+                <li className="ml-12 list-disc my-3">{children}</li>
               ),
               link: ({ href, children }: any) => (
                 <a href={href} className="text-blue-500 hover:underline">
