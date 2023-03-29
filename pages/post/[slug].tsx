@@ -161,12 +161,26 @@ const post = ({ post }: Props) => {
 };
 
 export const getStaticPaths = async () => {
-  const query = `*[_type=='post']{
-        _id,
-        slug{
-            current
-        }
-    }`;
+  *[_type=='post']{
+  _id,
+  title,
+  description,
+  author->{
+    name,
+    slug{
+      current
+    }
+  },
+  category->{
+    _id,
+    title,
+    description,
+  },
+  slug{
+    current
+  },
+  _updatedAt,
+}
   const posts = await sanityClient.fetch(query);
   const paths = posts.map((post: Post) => ({
     params: {
